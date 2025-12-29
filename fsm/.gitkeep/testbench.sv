@@ -1,5 +1,4 @@
-// Code your testbench here
-// or browse Examples
+
 module traffic_control_tb;
 
 wire [2:0] n_lights,s_lights,e_lights,w_lights;
