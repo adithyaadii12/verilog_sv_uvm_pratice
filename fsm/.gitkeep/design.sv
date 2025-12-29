@@ -1,4 +1,4 @@
-// Code your design here
+
 module traffic_control(n_lights,s_lights,e_lights,w_lights,clk,rst_a);
 
    output reg [2:0] n_lights,s_lights,e_lights,w_lights; 
