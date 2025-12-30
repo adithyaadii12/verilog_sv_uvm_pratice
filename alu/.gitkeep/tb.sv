@@ -37,3 +37,5 @@ module tb_alu;
     $display("---- ALU TEST END ----");
     $finish;
   end
+
+endmodule
