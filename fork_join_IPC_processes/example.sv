@@ -134,7 +134,7 @@ module tb;
         wait fork;
           #30
           $display("fork_join_none_disable %t",$time);
-        fork
+        fork : JOIN_NONE
           $display("starting a fork_join_none_disable %t",$time);
           ife.a();
           $display("starting b fork_join_none_disable %t",$time);          
@@ -142,13 +142,55 @@ module tb;
           $display("starting c fork_join_none_disable %t",$time);        
           ife.c();
         join_none
-        disable fork;
+          #0
+        disable JOIN_NONE;
+          $display("fork_join_none_disable %t", $time);
+
+// fork 
+  // Killer thread (controls lifetime)
+//   begin
+//     #40;                    // allow others to run
+//     $display("DISABLING JOIN_NONE at %0t", $time);
+//     disable fork;
+//   end
+
+//   begin
+//     $display("starting a fork_join_none_disable %t", $time);
+//     ife.a();                // FULL task executes
+//   end
+
+//   begin
+//     $display("starting b fork_join_none_disable %t", $time);
+//     ife.b();
+//   end
+
+//   begin
+//     $display("starting c fork_join_none_disable %t", $time);
+//     ife.c();
+//   end
+// join
        end
        #300ns  
+          
+          
        begin
+         
+          $display("fork_any__disable %t",$time);
+        fork : ANY_DISABLE
+          $display("starting a fork_any__disable %t",$time);
+          ife.a();
+          $display("starting b fork_any__disable %t",$time);
+          ife.b();
+          $display("starting c fork_any__disable %t",$time);          
+          ife.c();
+        join_any
+        $display("ONE task finished, disabling rest at %0t", $time);
+
+       disable ANY_DISABLE;
+         
             #1
             $display("fork_join_none_wait %t",$time);
-        fork
+        fork : NONE_WAIT
           $display("starting a fork_join_none_wait %t",$time);          
           ife.a();
           $display("starting b fork_join_none_wait %t",$time);          
@@ -159,19 +201,40 @@ module tb;
         wait fork;
           #30
           $display("fork_any__disable %t",$time);
-        fork
-          $display("starting a fork_any__disable %t",$time);
-          ife.a();
-          $display("starting b fork_any__disable %t",$time);
-          ife.b();
-          $display("starting c fork_any__disable %t",$time);          
-          ife.c();
-        join_any
-       disable fork;
+//         fork : ANY_DISABLE
+//           $display("starting a fork_any__disable %t",$time);
+//           ife.a();
+//           $display("starting b fork_any__disable %t",$time);
+//           ife.b();
+//           $display("starting c fork_any__disable %t",$time);          
+//           ife.c();
+//         join_any
+//           #0
+//        disable ANY_DISABLE;
+//           fork : ANY_DISABLE
+//   begin
+//     $display("starting a fork_any__disable %t", $time);
+//     ife.a();                // this one will complete
+//   end
+
+//   begin
+//     $display("starting b fork_any__disable %t", $time);
+//     ife.b();
+//   end
+
+//   begin
+//     $display("starting c fork_any__disable %t", $time);
+//     ife.c();
+//   end
+// join_any
+
+// At least ONE task finished here
+$display("ONE task finished, disabling rest at %0t", $time);
+// disable ANY_DISABLE;
             
       end
       join
    end
- endmodule   
+ endmodule
         
         
