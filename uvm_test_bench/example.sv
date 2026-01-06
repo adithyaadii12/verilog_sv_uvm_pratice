@@ -65,6 +65,7 @@ class my_driver extends uvm_driver #(my_sequence_item);
   `uvm_component_utils(my_driver)
 
   virtual example_if vif;
+  event drv_done;
 
   function new(string name = "", uvm_component parent);
     super.new(name,parent);
@@ -79,9 +80,10 @@ class my_driver extends uvm_driver #(my_sequence_item);
         vif.addr  <= item.addr;
         vif.data  <= item.data;
         vif.value <= item.value;
-        $display("DRIVER:        addr:%d,data:%d,value:%d,time:%t",item.addr,item.data,item.value,$time);
+        $display("DRIVER:        addr:%d,data:%d,value:%d,time:%0t",item.addr,item.data,item.value,$time);
       end
       seq_item_port.item_done();
+      ->drv_done;
     end
   endtask
 endclass
@@ -92,6 +94,8 @@ class my_monitor extends uvm_monitor;
 
   virtual example_if vif;
   uvm_analysis_port #(my_sequence_item) out_port;
+  event drv_done;
+
 
   function new(string name = "", uvm_component parent);
     super.new(name,parent);
@@ -101,14 +105,14 @@ class my_monitor extends uvm_monitor;
   virtual task run_phase(uvm_phase phase);
     my_sequence_item item;
     forever begin
-      @(posedge vif.clk);
+      @drv_done;
       #1ns;
       item = my_sequence_item::type_id::create("item");
       item.enable = vif.enable;
       item.addr   = vif.addr;
       item.data   = vif.data;
       item.value  = vif.value;
-      $display("monitor : enable = %d, addr : %d,data = %d,value : %d,time %t", item.enable,item.addr,item.data,item.value,$time);
+      $display("monitor : enable = %d, addr : %d,data = %d,value : %d,time :%0t", item.enable,item.addr,item.data,item.value,$time);
       out_port.write(item);
     end
   endtask
@@ -124,6 +128,7 @@ class my_agent extends uvm_agent;
   my_driver    driver;
   my_monitor   monitor;
   my_sequencer #(my_sequence_item) sequencer;
+  event drv_done;
 
   function new(string name = "", uvm_component parent);
     super.new(name,parent);
@@ -131,16 +136,21 @@ class my_agent extends uvm_agent;
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
+//     drv_done = new;
     if (!uvm_config_db#(virtual example_if)::get(this,"","vif",vif))
       `uvm_fatal("NOVIF","Virtual interface not set")
+      
 
     monitor = my_monitor::type_id::create("monitor",this);
     monitor.vif = vif;
-
+    
     if (active_passive == UVM_ACTIVE) begin
       driver    = my_driver::type_id::create("driver",this);
       sequencer = my_sequencer#(my_sequence_item)::type_id::create("sequencer",this);
       driver.vif = vif;
+      driver.drv_done  = drv_done;
+      monitor.drv_done = drv_done;
+      
     end
   endfunction
 
