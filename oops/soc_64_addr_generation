@@ -1,0 +1,59 @@
+64bit address bus in your soc 
+1) 0x8000 0000 0000 0000-0x8fff_ffff_ffff_ffff 
+2) 2) 4kb boundary should not be cross 
+3) 3) cache allgned for 128 byte 
+4) 4) 0x8000 0000 0000 0000-0x8000 ffff ffff ffff (Secure region) 
+5) 5) no two consecutive 4KB should not generate same address space.
+
+class soc_64;
+  rand bit [63:0] addr;
+//   static bit [63:12] prev_value[$];
+    static bit [63:12] prev_value;
+  
+  constraint range {
+    
+    addr inside {
+      [64'h8000_0000_0000_0000 : 64'h8FFF_FFFF_FFFF_FFFF]
+    };
+    //secure region  and 128 byte alignement
+    addr[6:0] == 0; //128 byte alignement
+    addr[63:60] == 4'h8;   // secure region
+    addr[59:44] == 16'h0000;  // secure region
+  }
+  constraint kb4_bound { 
+    addr[11:0] inside {[0:12'hfff]};
+    
+  }
+  
+  constraint c {
+  
+    addr[63:12] != prev_value;
+    /*
+  foreach (page_q[i])
+    addr[63:12] != page_q[i];*/
+    
+}
+
+function void post_randomize();
+  prev_value = addr[63:12];
+//   prev_value.push_back(addr[63:12]);
+endfunction
+  
+endclass
+
+module tb;
+  initial begin
+    soc_64 soc = new();
+
+    repeat (10) begin
+      if (soc.randomize()) begin
+        $display("ADDR = 0x%016h | prev_value = 0x%h",
+                 soc.addr, soc.addr[63:12]);
+      end else begin
+        $display("Randomization FAILED");
+      end
+    end
+  end
+endmodule
+  
+  
