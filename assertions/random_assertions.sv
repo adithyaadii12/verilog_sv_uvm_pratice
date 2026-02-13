@@ -128,7 +128,7 @@ module asser_tb;
 
   property within_p;
     @(posedge clk)
-      ab_nc |-> c;
+     c within ab_nc;
   endproperty
   within_a: assert property(within_p)
     $display("c is high within 2 or 3 occurrences of a and b high");
@@ -137,7 +137,7 @@ module asser_tb;
 
   property within_goto;
     @(posedge clk)
-      ab_goto |-> c;
+      c within ab_goto;
   endproperty
   within_goto_a: assert property(within_goto)
     $display("c is high within 2 or 3 consecutive a and b highs");
